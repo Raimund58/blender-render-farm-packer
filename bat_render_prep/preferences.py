@@ -14,10 +14,11 @@ class BAT_AddonPreferences(AddonPreferences):
     bl_idname = __package__
 
     version_spec: StringProperty(  # type: ignore[valid-type]
-        name="Version Specifier",
+        name="Version",
         description=(
-            "PEP 440 specifier for the blender-asset-tracer package. "
-            "Leave empty to install the latest release. "
+            "Version of the blender-asset-tracer package to install. "
+            "Examples: '2.0.5' (exact), '==2.0.5', '>=2.0.5,<3' (range), "
+            "or leave empty for the latest release. "
             "The default pins to the v2 line."
         ),
         default=deps.DEFAULT_VERSION_SPEC,
@@ -38,6 +39,12 @@ class BAT_AddonPreferences(AddonPreferences):
 
         col = box.column(align=True)
         col.prop(self, "version_spec")
+        hint = box.column()
+        hint.scale_y = 0.85
+        hint.label(
+            text="Examples: 2.0.5 • ==2.0.5 • >=2.0.5,<3 • (empty = latest)",
+            icon="INFO",
+        )
 
         row = box.row(align=True)
         row.operator(
