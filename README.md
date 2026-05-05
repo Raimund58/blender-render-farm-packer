@@ -10,8 +10,10 @@ changes.
 
 ## Requirements
 
-- **Blender 5.1.0 or newer.** BAT v2 itself only supports 5.1+, and so does
-  this add-on. Older Blender versions will refuse to register the add-on.
+- **Blender 5.1.1 or newer.** BAT v2 needs 5.1+, and 5.1.0 has dependency-
+  reporting bugs that BAT cannot work around (legacy particle caches in
+  particular). We require 5.1.1 so the add-on can rely on a known-good
+  baseline. Older Blender versions will refuse to register the add-on.
 - Network access on first use, to install BAT from PyPI.
 - No admin / root privileges — BAT is installed into your user scripts
   folder.
@@ -86,15 +88,20 @@ errors flow naturally into the panel.
 
 ## Known limitations
 
-These come from BAT v2 / Blender 5.1.0 itself:
+These come from Blender itself, not from this add-on or BAT:
 
-- Blender 5.1.0 does not report legacy particle system cache files
-  correctly (fixed in 5.1.1).
-- Blender 5.1.0 does not report Alembic file sequences correctly.
-- Blender 5.1.0 does not report Geometry Nodes simulation cache files.
+- Alembic file sequences are not reported correctly by Blender
+  ([blender#155774](https://projects.blender.org/blender/blender/issues/155774)),
+  so BAT cannot pack them correctly either.
+- Geometry Nodes simulation cache files are not reported by Blender
+  ([blender#155953](https://projects.blender.org/blender/blender/issues/155953)),
+  so BAT does not know about them and will not pack them.
+
+The legacy particle-system cache reporting bug that affected Blender 5.1.0
+is fixed in 5.1.1, which is why this add-on requires 5.1.1 as a minimum.
 
 See the [BAT README](https://github.com/Raimund58/blender-asset-tracer) for
-details and tracking issues.
+the latest tracking status.
 
 ## License
 

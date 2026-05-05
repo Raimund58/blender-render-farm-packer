@@ -15,10 +15,11 @@ import bpy
 
 # ---- Hard compatibility guard ------------------------------------------------
 #
-# BAT v2 requires Blender 5.1 or newer (it relies on
-# bpy.data.libraries.file_path_map and friends, only available there).
-# We fail loudly on register() rather than silently misbehaving.
-MIN_BLENDER_VERSION = (5, 1, 0)
+# BAT v2 requires Blender 5.1+. We require 5.1.1 specifically because
+# 5.1.0 has known reporting bugs around legacy particle caches, Alembic
+# sequences and Geometry Nodes simulation caches that BAT cannot work
+# around. We fail loudly on register() rather than silently misbehaving.
+MIN_BLENDER_VERSION = (5, 1, 1)
 
 
 from . import deps, ops_install, ops_pack, preferences, properties, ui  # noqa: E402
@@ -48,7 +49,8 @@ def register() -> None:
             "BAT Render Farm Packer requires Blender "
             f"{'.'.join(str(v) for v in MIN_BLENDER_VERSION)} or newer "
             f"(detected {'.'.join(str(v) for v in bpy.app.version)}). "
-            "BAT v2 itself does not support older Blender versions."
+            "Blender 5.1.0 has known dependency-reporting bugs that prevent "
+            "BAT from working correctly; please update to 5.1.1 or newer."
         )
 
     for cls in _classes:

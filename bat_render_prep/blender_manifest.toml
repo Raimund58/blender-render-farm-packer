@@ -11,7 +11,7 @@ website = "https://github.com/Raimund58/blender-render-farm-packer"
 
 tags = ["Render", "Pipeline", "System"]
 
-blender_version_min = "5.1.0"
+blender_version_min = "5.1.1"
 
 license = [
   "SPDX:GPL-3.0-or-later",
