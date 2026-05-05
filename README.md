@@ -18,12 +18,34 @@ changes.
 
 ## Install
 
-1. Download or clone this repository.
-2. In Blender, drag-and-drop the `bat_render_prep/` folder onto the
-   3D Viewport (Blender 4.2+ extensions UX) **or** zip the folder and use
-   `Edit > Preferences > Add-ons > Install from disk`.
+Blender's add-on installer needs a `.zip` file — a raw folder will not work.
+
+### Option A — download a release zip (recommended)
+
+1. Grab `bat_render_prep-<version>.zip` from the
+   [Releases page](https://github.com/Raimund58/blender-render-farm-packer/releases).
+2. In Blender, drag the zip onto the 3D Viewport, **or** use
+   `Edit > Preferences > Add-ons > Install from disk` and pick the zip.
 3. Enable **BAT Render Farm Packer**.
 4. In the add-on preferences, click **Install / Update BAT**.
+
+### Option B — build the zip yourself
+
+From a clone of this repository:
+
+```sh
+# macOS / Linux
+cd blender-render-farm-packer
+zip -r bat_render_prep.zip bat_render_prep -x '*/__pycache__/*'
+```
+
+```powershell
+# Windows PowerShell
+cd blender-render-farm-packer
+Compress-Archive -Path bat_render_prep -DestinationPath bat_render_prep.zip -Force
+```
+
+Then install `bat_render_prep.zip` in Blender as in Option A.
 
 ## Use
 
