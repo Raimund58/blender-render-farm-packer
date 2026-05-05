@@ -1,0 +1,26 @@
+schema_version = "1.0.0"
+
+id = "bat_render_prep"
+version = "0.1.0"
+name = "BAT Render Farm Packer"
+tagline = "Prepare Blender projects for render farms using BAT v2"
+maintainer = "Raimund58 <raimund58@users.noreply.github.com>"
+type = "add-on"
+
+website = "https://github.com/Raimund58/blender-render-farm-packer"
+
+tags = ["Render", "Pipeline", "System"]
+
+blender_version_min = "5.1.0"
+
+license = [
+  "SPDX:GPL-3.0-or-later",
+]
+
+# This add-on installs the `blender-asset-tracer` package from PyPI on demand
+# into a per-user site directory. It does NOT bundle BAT, so we use the
+# standard Python import + subprocess(pip) approach. This requires network
+# access at install time. We declare the network permission accordingly.
+[permissions]
+network = "Download the blender-asset-tracer package from PyPI"
+files = "Read the current .blend file and write the BAT pack to a chosen target directory"
