@@ -93,16 +93,10 @@ These come from Blender itself, not from this add-on or BAT:
 - Alembic file sequences are not reported correctly by Blender
   ([blender#155774](https://projects.blender.org/blender/blender/issues/155774)),
   so BAT cannot pack them correctly either.
-- Geometry Nodes simulation cache files are not reported by Blender
-  ([blender#155953](https://projects.blender.org/blender/blender/issues/155953)),
-  so BAT does not know about them and will not pack them.
 
-The legacy particle-system cache reporting bug that affected Blender 5.1.0
-is fixed in 5.1.1, which is why this add-on requires 5.1.1 as a minimum.
-
-See the [BAT README](https://github.com/Raimund58/blender-asset-tracer) for
+See the https://projects.blender.org/blender/blender-asset-tracer for
 the latest tracking status.
 
 ## License
 
-GPL-3.0-or-later — same as BAT v2.
+GPL-3.0 — same as BAT v2.
