@@ -65,30 +65,84 @@ def _drop_cached_modules() -> None:
 
 
 def is_installed() -> bool:
-    add_user_site_to_path()
-    try:
-        import importlib
+    """Return whether BAT is installed in our per-user site directory.
 
-        importlib.invalidate_caches()
-        importlib.import_module(IMPORT_NAME)
-    except Exception:
+    Uses the disk check (presence of the package directory or its
+    dist-info) instead of attempting an import, so it stays correct right
+    after install/uninstall, where import caches may still lag.
+    """
+    site_dir = user_site_dir()
+    if not site_dir.exists():
         return False
-    return True
+    if (site_dir / IMPORT_NAME).is_dir():
+        return True
+    if any(site_dir.glob("blender_asset_tracer-*.dist-info")):
+        return True
+    if any(site_dir.glob("blender-asset-tracer-*.dist-info")):
+        return True
+    return False
 
 
 def installed_version(*, force_reload: bool = False) -> str | None:
-    """Return the installed BAT version string, or None.
+    """Return the installed BAT version string, or None if not installed.
 
-    When ``force_reload`` is True, drop any cached modules first so the
-    returned version reflects what is on disk right now (used right after
-    install/uninstall).
+    The version is read directly from the on-disk ``*.dist-info/METADATA``
+    file in the per-user site directory. We deliberately do NOT import the
+    package, because Blender keeps several import-machinery caches alive
+    across an in-session pip install/upgrade, which makes the imported
+    module's ``__version__`` lag behind what is actually on disk.
+
+    The ``force_reload`` flag is accepted for API compatibility; with the
+    metadata-based lookup it is a no-op (we always read fresh from disk).
     """
+    del force_reload  # always fresh
+    return _read_disk_version() or _read_imported_version()
+
+
+def _read_disk_version() -> str | None:
+    """Read BAT's version from the dist-info metadata in user_site_dir()."""
+    site_dir = user_site_dir()
+    if not site_dir.exists():
+        return None
+
+    # Pip writes ``<package>-<version>.dist-info`` (or .egg-info) when
+    # installing with --target. The package distribution name is
+    # ``blender_asset_tracer`` (underscores) per PEP 503 normalisation,
+    # but pip preserves either form on disk depending on version. Match
+    # both to be safe.
+    candidates = list(site_dir.glob("blender_asset_tracer-*.dist-info")) + list(
+        site_dir.glob("blender-asset-tracer-*.dist-info")
+    )
+    if not candidates:
+        return None
+
+    # If multiple are present (shouldn't be after --upgrade, but defensive)
+    # take the one with the most recent mtime.
+    dist_info = max(candidates, key=lambda p: p.stat().st_mtime)
+    metadata = dist_info / "METADATA"
+    if not metadata.is_file():
+        return None
+
+    try:
+        with metadata.open("r", encoding="utf-8", errors="replace") as fh:
+            for line in fh:
+                if line.startswith("Version:"):
+                    return line.split(":", 1)[1].strip()
+                if not line.strip():
+                    # End of header block.
+                    break
+    except OSError:
+        return None
+    return None
+
+
+def _read_imported_version() -> str | None:
+    """Last-resort fallback: import the package and read __version__."""
     add_user_site_to_path()
     try:
         import importlib
 
-        if force_reload:
-            _drop_cached_modules()
+        _drop_cached_modules()
         importlib.invalidate_caches()
         mod = importlib.import_module(IMPORT_NAME)
         return getattr(mod, "__version__", None)
