@@ -51,6 +51,19 @@ def add_user_site_to_path() -> None:
         site.addsitedir(site_dir)
 
 
+def _drop_cached_modules() -> None:
+    """Remove every cached blender_asset_tracer.* module from sys.modules.
+
+    A previous install/uninstall may have left submodules cached. Without
+    this, ``importlib.import_module`` re-uses the stale top-level package
+    object and reports the *old* ``__version__`` even after a successful
+    upgrade.
+    """
+    prefix = IMPORT_NAME
+    for name in [m for m in list(sys.modules) if m == prefix or m.startswith(prefix + ".")]:
+        sys.modules.pop(name, None)
+
+
 def is_installed() -> bool:
     add_user_site_to_path()
     try:
@@ -63,17 +76,40 @@ def is_installed() -> bool:
     return True
 
 
-def installed_version() -> str | None:
-    """Return the installed BAT version string, or None."""
+def installed_version(*, force_reload: bool = False) -> str | None:
+    """Return the installed BAT version string, or None.
+
+    When ``force_reload`` is True, drop any cached modules first so the
+    returned version reflects what is on disk right now (used right after
+    install/uninstall).
+    """
     add_user_site_to_path()
     try:
         import importlib
 
+        if force_reload:
+            _drop_cached_modules()
         importlib.invalidate_caches()
         mod = importlib.import_module(IMPORT_NAME)
         return getattr(mod, "__version__", None)
     except Exception:
         return None
+
+
+def format_install_target(spec: str) -> str:
+    """Render a user-friendly description of what we're about to install.
+
+    Examples::
+
+        ''             -> 'blender-asset-tracer (latest)'
+        '2.0.1'        -> 'blender-asset-tracer 2.0.1'
+        '==2.0.1'      -> 'blender-asset-tracer ==2.0.1'
+        '>=2.0.5,<3'   -> 'blender-asset-tracer >=2.0.5,<3'
+    """
+    spec = (spec or "").strip()
+    if not spec:
+        return f"{PACKAGE_NAME} (latest)"
+    return f"{PACKAGE_NAME} {spec}"
 
 
 def python_executable() -> str:
@@ -154,14 +190,15 @@ def install(version_spec: str = DEFAULT_VERSION_SPEC, *, upgrade: bool = True) -
     success = proc.returncode == 0
     if success:
         # Refresh import path & caches so a subsequent import sees the
-        # freshly installed package.
+        # freshly installed package. We must drop EVERY cached submodule;
+        # otherwise the previously-imported top-level package keeps its
+        # old __version__ even after the new wheel landed on disk.
         add_user_site_to_path()
         try:
             import importlib
 
+            _drop_cached_modules()
             importlib.invalidate_caches()
-            if IMPORT_NAME in sys.modules:
-                del sys.modules[IMPORT_NAME]
         except Exception:
             pass
     return success, output
@@ -190,9 +227,8 @@ def uninstall() -> tuple[bool, str]:
         except Exception as ex:
             output_lines.append(f"Failed to remove {child.name}: {ex}")
 
-    # Drop cached module so the next import re-resolves.
-    if IMPORT_NAME in sys.modules:
-        del sys.modules[IMPORT_NAME]
+    # Drop cached modules so the next import re-resolves.
+    _drop_cached_modules()
 
     return True, "\n".join(output_lines) or "Cleared install directory."
 

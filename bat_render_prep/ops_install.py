@@ -32,8 +32,9 @@ class BAT_OT_install_dependency(Operator):
 
     def execute(self, context: bpy.types.Context) -> set[str]:
         prefs = _addon_prefs(context)
-        spec = prefs.version_spec or ""
-        self.report({"INFO"}, f"Installing blender-asset-tracer{spec or ' (latest)'}…")
+        spec = (prefs.version_spec or "").strip()
+        pretty = deps.format_install_target(spec)
+        self.report({"INFO"}, f"Installing {pretty}\u2026")
 
         success, output = deps.install(spec, upgrade=True)
 
@@ -41,13 +42,13 @@ class BAT_OT_install_dependency(Operator):
             log.info("pip: %s", line)
 
         if not success:
-            self.report({"ERROR"}, "BAT install failed — see system console")
+            self.report({"ERROR"}, "BAT install failed \u2014 see system console")
             print("---- pip output (BAT install) ----")
             print(output)
             print("---- end pip output ----")
             return {"CANCELLED"}
 
-        version = deps.installed_version() or "unknown"
+        version = deps.installed_version(force_reload=True) or "unknown"
         self.report({"INFO"}, f"BAT {version} installed")
         return {"FINISHED"}
 
