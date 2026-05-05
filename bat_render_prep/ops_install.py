@@ -19,6 +19,25 @@ def _addon_prefs(context: bpy.types.Context):
     return context.preferences.addons[__package__].preferences
 
 
+def _redraw_all() -> None:
+    """Force a redraw of editors that show our status.
+
+    The preferences window draws ``BAT_AddonPreferences`` and the
+    Properties editor draws our Output panel. Without an explicit
+    ``tag_redraw`` they keep showing the previous state until the user
+    interacts with them again, which makes Install / Uninstall feel
+    broken.
+    """
+    try:
+        wm = bpy.context.window_manager
+        for window in wm.windows:
+            for area in window.screen.areas:
+                if area.type in {"PREFERENCES", "PROPERTIES"}:
+                    area.tag_redraw()
+    except Exception:
+        pass
+
+
 class BAT_OT_install_dependency(Operator):
     """Install or update the blender-asset-tracer package from PyPI."""
 
@@ -50,6 +69,7 @@ class BAT_OT_install_dependency(Operator):
 
         version = deps.installed_version(force_reload=True) or "unknown"
         self.report({"INFO"}, f"BAT {version} installed")
+        _redraw_all()
         return {"FINISHED"}
 
 
@@ -66,9 +86,11 @@ class BAT_OT_uninstall_dependency(Operator):
         for line in output.splitlines():
             log.info("uninstall: %s", line)
         if not success:
-            self.report({"ERROR"}, "Uninstall failed — see system console")
+            self.report({"ERROR"}, "Uninstall failed \u2014 see system console")
+            _redraw_all()
             return {"CANCELLED"}
         self.report({"INFO"}, "BAT uninstalled")
+        _redraw_all()
         return {"FINISHED"}
 
 

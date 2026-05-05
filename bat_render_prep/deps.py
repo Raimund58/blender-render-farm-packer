@@ -271,6 +271,7 @@ def uninstall() -> tuple[bool, str]:
     if not site_dir.exists():
         return True, "Nothing to remove."
 
+    any_failed = False
     for child in site_dir.iterdir():
         try:
             if child.is_dir():
@@ -279,12 +280,14 @@ def uninstall() -> tuple[bool, str]:
                 child.unlink()
             output_lines.append(f"Removed {child.name}")
         except Exception as ex:
+            any_failed = True
             output_lines.append(f"Failed to remove {child.name}: {ex}")
 
     # Drop cached modules so the next import re-resolves.
     _drop_cached_modules()
 
-    return True, "\n".join(output_lines) or "Cleared install directory."
+    log_text = "\n".join(output_lines) or "Cleared install directory."
+    return (not any_failed), log_text
 
 
 # PEP 440 comparison operators that may legally start a specifier.
