@@ -62,6 +62,7 @@ Then install `bat_render_prep.zip` in Blender as in Option A.
 5. (Optional) In the **Exclude Patterns** sub-panel, add globs such as
    `*.abc` or `*.bphys` to skip certain caches.
 6. Click **Create BAT-Pack**.
+<img width="994" height="1094" alt="image" src="https://github.com/user-attachments/assets/ba27db72-3db3-4154-b04f-6635ad17f259" />
 
 The operator is modal: progress is shown live, and you can cancel with the
 **Cancel** button or by pressing `Esc`.
